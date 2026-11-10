@@ -25,7 +25,12 @@ jobs:
       - name: Extract Android project
         run: |
           unzip -q Kadam_Family_Record_Manager_Android_Source.zip -d source
-          find source -name settings.gradle -type f
+
+      - name: Fix Java backup code
+        run: |
+          PROJECT_DIR=$(dirname "$(find source -name settings.gradle -type f -print -quit)")
+          JAVA_FILE="$PROJECT_DIR/app/src/main/java/in/kadam/familyrecords/MainActivity.java"
+          sed -i 's/db\.getDatabasePath("records.db")/getDatabasePath("records.db")/' "$JAVA_FILE"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -35,11 +40,6 @@ jobs:
       - name: Build APK
         run: |
           PROJECT_DIR=$(dirname "$(find source -name settings.gradle -type f -print -quit)")
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "ERROR: settings.gradle was not found in the ZIP."
-            exit 1
-          fi
-          echo "Building project in: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           gradle assembleDebug
 
